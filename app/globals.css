@@ -1,0 +1,17 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --background: #0f1419;
+  --foreground: #e8eaed;
+  --card: #1a1f26;
+  --border: #2d3640;
+  --accent: #3b82f6;
+  --accent-hover: #2563eb;
+}
+
+body {
+  color: var(--foreground);
+  background: var(--background);
+}
