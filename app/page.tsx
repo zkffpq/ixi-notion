@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useState, type DragEvent, type FormEvent } from "react";
+import Image from "next/image";
 
 const AUDIO_FIELD_NAME = "audio";
 
@@ -102,8 +103,26 @@ export default function HomePage() {
   return (
     <main className="mx-auto flex min-h-screen max-w-lg flex-col justify-center px-4 py-12">
       <div className="mb-8 text-center">
+        <div className="mb-6 flex flex-col items-center justify-center gap-3 sm:flex-row">
+          <Image
+            src="/images/ixi-logo.png"
+            alt="익시오 로고"
+            width={220}
+            height={72}
+            className="h-auto w-[180px] sm:w-[220px]"
+            priority
+          />
+          <Image
+            src="/images/notion-logo.png"
+            alt="노션 로고"
+            width={220}
+            height={110}
+            className="h-auto w-[180px] sm:w-[220px]"
+            priority
+          />
+        </div>
         <p className="mb-3 text-3xl font-semibold tracking-tight text-white">
-          익시오*노션 통화 요약 서비스
+          익시오 통화*노션 워크스페이스 연계 서비스
         </p>
         <p className="mt-2 text-sm text-slate-400">
           파일을 업로드 해주시면 통화요약 정보를 노션으로 안전하게 전달합니다.
