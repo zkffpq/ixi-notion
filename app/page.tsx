@@ -6,9 +6,21 @@ import Image from "next/image";
 const AUDIO_FIELD_NAME = "audio";
 
 /**
- * 홈 화면 — 음성 파일 선택 후 서버 API를 통해 n8n 웹훅으로 전송합니다.
+ * 이메일 문자열이 비어 있지 않고 일반적인 형식인지 검사합니다.
+ */
+function is_valid_email(value: string): boolean {
+  const trimmed = value.trim();
+  if (!trimmed) {
+    return false;
+  }
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmed);
+}
+
+/**
+ * 홈 화면 — 이메일·음성 파일을 입력받아 서버 API를 통해 n8n 웹훅으로 전송합니다.
  */
 export default function HomePage() {
+  const [user_email, set_user_email] = useState("");
   const [selected_file, set_selected_file] = useState<File | null>(null);
   const [is_uploading, set_is_uploading] = useState(false);
   const [user_message, set_user_message] = useState<string | null>(null);
@@ -36,6 +48,20 @@ export default function HomePage() {
     event.preventDefault();
     reset_feedback();
 
+    const trimmed_email = user_email.trim();
+    if (!trimmed_email) {
+      window.alert(
+        "이메일 주소를 입력해 주세요. 가입하신 이메일을 정확히 입력해 주세요.",
+      );
+      return;
+    }
+    if (!is_valid_email(trimmed_email)) {
+      window.alert(
+        "이메일 형식이 올바르지 않습니다. 예: name@example.com 처럼 입력해 주세요.",
+      );
+      return;
+    }
+
     if (!selected_file) {
       set_is_error(true);
       set_user_message(
@@ -47,6 +73,7 @@ export default function HomePage() {
     set_is_uploading(true);
     try {
       const form_data = new FormData();
+      form_data.append("email", trimmed_email);
       form_data.append(AUDIO_FIELD_NAME, selected_file);
 
       const response = await fetch("/api/upload-audio", {
@@ -174,6 +201,25 @@ export default function HomePage() {
             </p>
           )}
         </div>
+
+        <label
+          htmlFor="user-email"
+          className="mb-2 block text-sm font-medium text-slate-300"
+        >
+          이메일 주소
+        </label>
+        <input
+          id="user-email"
+          name="email"
+          type="email"
+          autoComplete="email"
+          inputMode="email"
+          placeholder="name@example.com"
+          value={user_email}
+          disabled={is_uploading}
+          onChange={(event) => set_user_email(event.target.value)}
+          className="mb-4 w-full rounded-lg border border-slate-600 bg-slate-900/40 px-3 py-2.5 text-sm text-slate-200 placeholder:text-slate-500 focus:border-[var(--accent)] focus:outline-none focus:ring-1 focus:ring-[var(--accent)] disabled:cursor-not-allowed disabled:opacity-50"
+        />
 
         <button
           type="submit"

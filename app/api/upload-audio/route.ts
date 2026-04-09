@@ -2,9 +2,21 @@ import { NextRequest, NextResponse } from "next/server";
 
 /** n8n으로 넘길 multipart 필드 이름 (워크플로에서 동일 이름으로 수신하세요) */
 const AUDIO_FIELD_NAME = "audio";
+const EMAIL_FIELD_NAME = "email";
 
 /**
- * 음성 파일을 받아 n8n 웹훅 URL로 그대로 전달합니다.
+ * 이메일 문자열이 비어 있지 않고 일반적인 형식인지 검사합니다.
+ */
+function is_valid_email(value: string): boolean {
+  const trimmed = value.trim();
+  if (!trimmed) {
+    return false;
+  }
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmed);
+}
+
+/**
+ * 음성 파일·이메일을 받아 n8n 웹훅 URL로 그대로 전달합니다.
  * CORS·비밀 URL 노출을 줄이기 위해 브라우저는 이 API만 호출합니다.
  */
 export async function POST(request: NextRequest) {
@@ -24,6 +36,20 @@ export async function POST(request: NextRequest) {
     }
 
     const form_data = await request.formData();
+    const raw_email = form_data.get(EMAIL_FIELD_NAME);
+    const email_text =
+      typeof raw_email === "string" ? raw_email.trim() : "";
+
+    if (!email_text || !is_valid_email(email_text)) {
+      return NextResponse.json(
+        {
+          error:
+            "이메일 주소를 올바르게 입력한 뒤 다시 시도해 주세요.",
+        },
+        { status: 400 },
+      );
+    }
+
     const audio_file = form_data.get(AUDIO_FIELD_NAME);
 
     if (!(audio_file instanceof File) || audio_file.size === 0) {
@@ -37,6 +63,7 @@ export async function POST(request: NextRequest) {
     }
 
     const forward_form = new FormData();
+    forward_form.append(EMAIL_FIELD_NAME, email_text);
     forward_form.append(AUDIO_FIELD_NAME, audio_file, audio_file.name);
 
     const webhook_response = await fetch(webhook_url, {
